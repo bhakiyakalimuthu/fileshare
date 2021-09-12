@@ -1,0 +1,15 @@
+FROM golang:1.16-alpine3.14
+
+ENV CGO_ENABLED 0
+ENV GOOS linux
+ENV PROTOC_VERSION_TAG v1.4.2
+ENV GO111MODULE on
+
+ADD ./tmp/protoc-gen-event /tmp/protoc-gen-event
+RUN cd /tmp/protoc-gen-event && go build && cp protoc-gen-event /go/bin
+
+# Install dependencies that change infrequently:
+RUN set -x \
+    && apk add --no-cache --update git musl-dev libc6-compat protobuf protobuf-dev bash \
+    && rm -f /var/cache/apk/* \
+    && go get google.golang.org/protobuf/cmd/protoc-gen-go@v1.25.0 google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.1.0
