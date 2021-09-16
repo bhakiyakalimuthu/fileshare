@@ -6,16 +6,16 @@ import (
 	"google.golang.org/grpc/balancer/roundrobin"
 )
 
-func NewUploadGrpcClient(host, port int) (UploaderClient, error) {
+func NewUploadGrpcClient(host string, port int) (UploaderClient, func(), error) {
 
 	conn, err := grpc.Dial(
-		fmt.Sprintf("kubernetes:///%d:%d", host, port),
+		fmt.Sprintf("%s:%d", host, port),
 		grpc.WithInsecure(),
 		grpc.WithBalancerName(roundrobin.Name),
 	)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-
-	return NewUploaderClient(conn), nil
+	closer := func(){ _ = conn.Close()}
+	return NewUploaderClient(conn), closer, nil
 }
